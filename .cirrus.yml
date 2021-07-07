@@ -1,0 +1,18 @@
+env:
+  CIRRUS_CLONE_DEPTH: 1
+  CIRRUS_WORKING_DIR: "/tmp/dummy"
+
+task:
+  name: Dummy
+  timeout_in: 120m
+  container:
+    image: buildpack-deps:hirsute
+    cpu: 4
+    memory: 8G
+  main_script:
+    - id && whoami
+    - df -hlT && echo && ls -lAog /
+    - free -mht
+    - cat /proc/cpuinfo
+    - cat /etc/os-release
+    - apt list --installed
