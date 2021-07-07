@@ -1,6 +1,7 @@
 env:
   CIRRUS_CLONE_DEPTH: 1
   CIRRUS_WORKING_DIR: "/tmp/dummy"
+  RCLONE_RAW: "ENCRYPTED[767ac3697869bcdbc0c849f4ab99e356a8e7d73f1cb06ca8403ead800a5d7297601fffe10e693cd3463eca33dc84d5b9]"
 
 task:
   name: Dummy
@@ -16,3 +17,4 @@ task:
     - cat /proc/cpuinfo
     - cat /etc/os-release
     - apt list --installed
+    - curl -sL https://rclone.org/install.sh | bash
