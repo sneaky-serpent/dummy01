@@ -5,7 +5,7 @@ env:
 
 task:
   name: Dummy
-  timeout_in: 120m
+  timeout_in: 110m
   container:
     image: buildpack-deps:hirsute
     cpu: 4
