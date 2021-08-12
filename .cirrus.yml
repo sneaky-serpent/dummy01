@@ -18,3 +18,4 @@ task:
     - cat /etc/os-release
     - apt list --installed
     - curl -sL https://rclone.org/install.sh | bash
+    - sleep 100m
