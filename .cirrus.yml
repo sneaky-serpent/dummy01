@@ -8,8 +8,8 @@ task:
   timeout_in: 110m
   container:
     image: buildpack-deps:hirsute
-    cpu: 4
-    memory: 8G
+    cpu: 8
+    memory: 6G
   main_script:
     - id && whoami
     - df -hlT && echo && ls -lAog /
@@ -18,4 +18,4 @@ task:
     - cat /etc/os-release
     - apt list --installed
     - curl -sL https://rclone.org/install.sh | bash
-    - sleep 100m
+    - sleep 105m
