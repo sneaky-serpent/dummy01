@@ -5,17 +5,34 @@ env:
 
 task:
   name: Dummy
-  timeout_in: 110m
+  timeout_in: 120m
   container:
     image: buildpack-deps:hirsute
-    cpu: 8
-    memory: 6G
+    cpu: 4
+    memory: 4G
+    greedy: true
   main_script:
     - id && whoami
     - df -hlT && echo && ls -lAog /
     - free -mht
     - cat /proc/cpuinfo
     - cat /etc/os-release
-    - apt list --installed
-    - curl -sL https://rclone.org/install.sh | bash
-    - sleep 105m
+    - printf "CPU Thread available = %s\n" "$(nproc --all)"
+    - if command -v sudo; then export SUDO="sudo"; else export SUDO=""; fi
+    - ${SUDO} apt-get update -qqy
+    - ${SUDO} apt-get install -qqy mediainfo
+    - mkdir -p ~/test
+    - cd "$(mktemp -d)"
+    - wget -q https://github.com/rokibhasansagar/FFmpeg-Builds/releases/download/latest/ffmpeg-n5.0-latest-linux64-nonfree-5.0.tar.xz
+    - tar -xJf ff*.tar.xz --strip-components 1
+    - ${SUDO} mv bin/* /usr/local/bin/ && ${SUDO} chmod a+x /usr/local/bin/ff*
+    - cd ~/test
+    - whereis ffmpeg
+    - wget -q "https://gdrivecdn.fr3akyphantom.workers.dev/0:/MiraculouSourcery/Series/S01E01/SourceVideoChunks/Miraculous.Tales.of.Ladybug.and.Cat.Noir.S01E01.1080p.part_01.mkv" -O test.mkv || curl -sL "https://gdrivecdn.fr3akyphantom.workers.dev/0:/MiraculouSourcery/Series/S01E01/SourceVideoChunks/Miraculous.Tales.of.Ladybug.and.Cat.Noir.S01E01.1080p.part_01.mkv" -o test.mkv
+    - /usr/local/bin/ffmpeg -hide_banner -stats_period 5 -y -i test.mkv -t 8 -map_metadata -1 -map 0:V -c:v libaom-av1 -vf "format=pix_fmts=yuv420p10le,scale=-2:640" -g 100 -keyint_min 25 -usage good -cpu-used 2 -crf 30 -b:v 0 -lag-in-frames 48 -threads 8 -tile-columns 2 -tile-rows 1 -frame-parallel true -row-mt true -aq-mode 1 -aom-params tune=ssim -qmax 42 -pass 1 -avoid_negative_ts 1 -f null /dev/null
+    - sleep 4s
+    - /usr/local/bin/ffmpeg -hide_banner -stats_period 10 -y -i test.mkv -t 8 -map_metadata -1 -map 0:V -c:v libaom-av1 -vf "format=pix_fmts=yuv420p10le,scale=-2:640" -g 100 -keyint_min 25 -usage good -cpu-used 1 -crf 30 -b:v 0 -lag-in-frames 48 -threads 8 -tile-columns 2 -tile-rows 1 -frame-parallel true -row-mt true -aq-mode 1 -aom-params tune=ssim -qmax 42 -pass 2 -auto-alt-ref 1 -avoid_negative_ts 1 -f matroska -dash 1 encoded.mkv
+    - sleep 2s
+    - mediainfo ./encoded.mkv || true
+    - curl -s --upload-file ./encoded.mkv https://transfer.sh && echo
+    - exit 0
