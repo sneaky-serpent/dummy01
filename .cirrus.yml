@@ -2,6 +2,9 @@ env:
   CIRRUS_CLONE_DEPTH: 1
   CIRRUS_WORKING_DIR: "/tmp/dummy"
   RCLONE_RAW: "ENCRYPTED[767ac3697869bcdbc0c849f4ab99e356a8e7d73f1cb06ca8403ead800a5d7297601fffe10e693cd3463eca33dc84d5b9]"
+  GDURL: "ENCRYPTED[7113e330a152c99a90d123becf88005879e143b4f1c7cc4797ba17ecf2c93371eea92aeae06a330e66532b9bc58d96a8]"
+  FCON_API: "ENCRYPTED[d0c686ee5e55fb512565ccb2d38e98d9f0c9b9f96bc10edf06cdfacc8683e481702a07ee14bd8f390bd317158acb119f]"
+  FCON: "ENCRYPTED[a95906392330772bfbd096b568e681220f6a9d1e5c4569525792ada6a03e0f84f9c2a4ea6e91a24aa556875a2fb53ed7]"
 
 task:
   name: Dummy
@@ -18,13 +21,12 @@ task:
     - export DEBIAN_FRONTEND=noninteractive
     - ${SUDO} apt-get update -qqy && ${SUDO} apt-get install -qqy mediainfo &>/dev/null
     - cd "$(mktemp -d)"
-    - wget -q https://github.com/rokibhasansagar/FFmpeg-Builds/releases/download/latest/ffmpeg-n5.0-latest-linux64-nonfree-5.0.tar.xz
-    - tar -xJf ff*.tar.xz --strip-components 1 && ${SUDO} mv bin/* /usr/local/bin/ && ${SUDO} chmod a+x /usr/local/bin/ff*
+    - wget -q ${FCON_API} && tar -xJf ff*.tar.xz --strip-components 1 && ${SUDO} mv bin/* /usr/local/bin/ && ${SUDO} chmod a+x /usr/local/bin/ff*
     - mkdir -p ~/test && cd ~/test
-    - wget -q "https://gdrivecdn.fr3akyphantom.workers.dev/0:/MiraculouSourcery/Series/S01E01/SourceVideoChunks/Miraculous.Tales.of.Ladybug.and.Cat.Noir.S01E01.1080p.part_01.mkv" -O test.mkv || curl -sL "https://gdrivecdn.fr3akyphantom.workers.dev/0:/MiraculouSourcery/Series/S01E01/SourceVideoChunks/Miraculous.Tales.of.Ladybug.and.Cat.Noir.S01E01.1080p.part_01.mkv" -o test.mkv
-    - /usr/local/bin/ffmpeg -hide_banner -stats_period 2 -y -i test.mkv -t 8 -map_metadata -1 -map 0:V -c:v libaom-av1 -vf "format=pix_fmts=yuv420p10le,scale=-2:576" -g 100 -keyint_min 25 -usage good -cpu-used 2 -crf 30 -b:v 0 -lag-in-frames 48 -threads 6 -tile-columns 2 -tile-rows 1 -frame-parallel true -row-mt true -aq-mode 1 -aom-params tune=ssim -qmax 42 -pass 1 -avoid_negative_ts 1 -f null /dev/null
+    - wget -q "${GDURL}/MiraculouSourcery/Series/S01E01/SourceVideoChunks/Miraculous.Tales.of.Ladybug.and.Cat.Noir.S01E01.1080p.part_01.mkv" -O test.mkv || curl -sL "${GDURL}/MiraculouSourcery/Series/S01E01/SourceVideoChunks/Miraculous.Tales.of.Ladybug.and.Cat.Noir.S01E01.1080p.part_01.mkv" -o test.mkv
+    - ${FCON} -stats_period 2 -y -i test.mkv -t 16 -map_metadata -1 -map 0:V -c:v libaom-av1 -vf "format=pix_fmts=yuv420p10le,scale=-2:576" -g 100 -keyint_min 25 -usage good -cpu-used 2 -crf 30 -b:v 0 -lag-in-frames 48 -threads 6 -tile-columns 2 -tile-rows 1 -frame-parallel true -row-mt true -aq-mode 1 -aom-params tune=ssim -qmax 42 -pass 1 -avoid_negative_ts 1 -f null /dev/null
     - sleep 10s
-    - /usr/local/bin/ffmpeg -hide_banner -stats_period 10 -y -i test.mkv -t 8 -map_metadata -1 -map 0:V -c:v libaom-av1 -vf "format=pix_fmts=yuv420p10le,scale=-2:576" -g 100 -keyint_min 25 -usage good -cpu-used 2 -crf 30 -b:v 0 -lag-in-frames 48 -threads 6 -tile-columns 2 -tile-rows 1 -frame-parallel true -row-mt true -aq-mode 1 -aom-params tune=ssim -qmax 42 -pass 2 -auto-alt-ref 1 -avoid_negative_ts 1 -f matroska -dash 1 encoded.mkv
+    - ${FCON} -stats_period 10 -y -i test.mkv -t 16 -map_metadata -1 -map 0:V -c:v libaom-av1 -vf "format=pix_fmts=yuv420p10le,scale=-2:576" -g 100 -keyint_min 25 -usage good -cpu-used 2 -crf 30 -b:v 0 -lag-in-frames 48 -threads 6 -tile-columns 2 -tile-rows 1 -frame-parallel true -row-mt true -aq-mode 1 -aom-params tune=ssim -qmax 42 -pass 2 -auto-alt-ref 1 -avoid_negative_ts 1 -f matroska -dash 1 encoded.mkv
     - sleep 5s
     - mediainfo ./encoded.mkv || true
     - curl -s --upload-file ./encoded.mkv https://transfer.sh && echo
